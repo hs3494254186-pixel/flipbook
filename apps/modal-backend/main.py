@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
+from anyio import to_thread
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
@@ -42,6 +43,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok", "service": "modal-backend"}
 
+    @app.get("/")
+    def root() -> dict[str, object]:
+        return {
+            "service": "modal-backend",
+            "status": "ok",
+            "endpoints": ["/health", "/ready", "/v1/overlay/map"],
+        }
+
+    @app.get("/ready")
+    def ready(request: Request) -> dict[str, object]:
+        geocoder = getattr(request.app.state, "geocoder", None)
+        return {
+            "status": "ready",
+            "checks": {"geocoder": "configured" if geocoder is not None else "missing"},
+        }
+
     @app.post("/v1/overlay/map")
     async def overlay_map(
         request: Request,
@@ -58,7 +75,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(status_code=413, detail="Image is too large")
 
         try:
-            ref = request.app.state.geocoder.search(query)
+            ref = await to_thread.run_sync(request.app.state.geocoder.search, query)
         except Exception as exc:
             raise HTTPException(status_code=502, detail="Map lookup failed") from exc
         if ref is None:

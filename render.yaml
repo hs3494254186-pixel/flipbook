@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: flipbook-modal-backend
+    runtime: python
+    rootDir: apps/modal-backend
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: CORS_ORIGINS
+        sync: false
+      - key: NOMINATIM_USER_AGENT
+        sync: false

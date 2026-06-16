@@ -51,6 +51,30 @@ def test_health_endpoint_reports_ready() -> None:
     assert response.json() == {"status": "ok", "service": "modal-backend"}
 
 
+def test_root_endpoint_reports_available_routes() -> None:
+    app = create_app(Settings(environment="test", cors_origins=["*"]))
+    client = TestClient(app)
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert response.json()["service"] == "modal-backend"
+    assert "/v1/overlay/map" in response.json()["endpoints"]
+
+
+def test_ready_endpoint_reports_dependency_state() -> None:
+    app = create_app(Settings(environment="test", cors_origins=["*"]))
+    client = TestClient(app)
+
+    response = client.get("/ready")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ready",
+        "checks": {"geocoder": "configured"},
+    }
+
+
 def test_overlay_endpoint_rejects_unsupported_file_type() -> None:
     app = create_app(Settings(environment="test", cors_origins=["*"]))
     client = TestClient(app)
