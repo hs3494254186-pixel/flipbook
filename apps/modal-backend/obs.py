@@ -203,6 +203,8 @@ async def status_payload(service: str) -> dict[str, Any]:
         _check_provider("fal", "https://fal.run/health"),
         _check_provider("openrouter", "https://openrouter.ai/api/v1/models"),
     )
+    siliconflow_key_ok = bool(os.environ.get("SILICONFLOW_API_KEY"))
+    fal_key_ok = bool(os.environ.get("FAL_KEY"))
     return {
         "ok": True,
         "service": service,
@@ -213,5 +215,9 @@ async def status_payload(service: str) -> dict[str, Any]:
         "providers": {
             "fal": fal_ok,
             "openrouter": openrouter_ok,
+        },
+        "secrets": {
+            "siliconflow_api_key": siliconflow_key_ok,
+            "fal_key": fal_key_ok,
         },
     }
