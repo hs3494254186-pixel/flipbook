@@ -2,42 +2,29 @@ import { NextResponse } from "next/server";
 import { insertNode } from "@/lib/db";
 import { decodeDataUrl, uploadJpeg } from "@/lib/r2";
 import { readServerEnv } from "@/lib/env";
+import {
+  createEphemeralNodeResponse,
+  hasRemoteNodePersistence,
+  validateCreateNodeBody,
+  type CreateNodeBody,
+} from "@/lib/node-persistence";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-interface CreateBody {
-  parent_id?: string | null;
-  session_id: string;
-  query: string;
-  page_title: string;
-  image_data_url: string;
-  image_model: string;
-  prompt_author_model: string;
-  aspect_ratio?: string;
-  final_prompt?: string | null;
-  click_in_parent?: { x_pct: number; y_pct: number } | null;
-  sources?: { url: string; title: string | null }[] | null;
-}
-
 export async function POST(req: Request) {
   const env = readServerEnv();
-  if (!env.MONGODB_URI || !env.MONGODB_DB || !env.R2_BUCKET) {
+  const body = (await req.json()) as CreateNodeBody;
+  const validationError = validateCreateNodeBody(body);
+  if (validationError) {
     return NextResponse.json(
-      {
-        error:
-          "MONGODB_URI/MONGODB_DB or R2_* not set. See docs/BYO-KEYS.md. Persistence is disabled; the generated image is still usable in-memory.",
-      },
-      { status: 503 }
+      { error: validationError },
+      { status: 400 }
     );
   }
 
-  const body = (await req.json()) as CreateBody;
-  if (!body.image_data_url || !body.session_id || !body.page_title) {
-    return NextResponse.json(
-      { error: "missing required fields: session_id, page_title, image_data_url" },
-      { status: 400 }
-    );
+  if (!hasRemoteNodePersistence(env)) {
+    return NextResponse.json(createEphemeralNodeResponse(body));
   }
 
   const decoded = decodeDataUrl(body.image_data_url);
