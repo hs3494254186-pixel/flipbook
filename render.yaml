@@ -20,6 +20,8 @@ services:
     dockerfilePath: apps/web/Dockerfile
     dockerContext: .
     envVars:
+      - key: HOSTNAME
+        value: 0.0.0.0
       - key: MODAL_API_URL
         value: https://flipbook-modal-backend.onrender.com
       - key: NEXT_PUBLIC_SITE_URL
