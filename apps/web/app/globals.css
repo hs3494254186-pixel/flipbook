@@ -1,0 +1,267 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Outfit", "SF Pro Display", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "SF Pro Text", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-canvas: #f5f6f8;
+  --color-ink: #111114;
+  --color-edge: rgba(17, 17, 20, 0.12);
+}
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-canvas: #f5f6f8;
+  --color-ink: #111114;
+  --color-edge: rgba(17, 17, 20, 0.12);
+}
+
+:root[data-theme="graphite"] {
+  color-scheme: light;
+  --color-canvas: #eef0f3;
+  --color-ink: #17191d;
+  --color-edge: rgba(23, 25, 29, 0.16);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-canvas: #15130f;
+  --color-ink: #f3ead6;
+  --color-edge: rgba(243, 234, 214, 0.18);
+}
+
+@keyframes ec-glitch {
+  0%   { filter: blur(0px) brightness(1); transform: scale(1); }
+  20%  { filter: blur(4px) brightness(1.2) contrast(1.1); transform: scale(1.01); }
+  40%  { filter: blur(12px) brightness(0.8) sepia(0.3); transform: scale(0.99); }
+  60%  { filter: blur(8px) brightness(1.1) hue-rotate(10deg); transform: scale(1.02); }
+  80%  { filter: blur(2px) brightness(0.9); transform: scale(0.995); }
+  100% { filter: blur(0px) brightness(1); transform: scale(1); }
+}
+
+.ec-glitch-active {
+  animation: ec-glitch 0.8s ease-in-out infinite;
+  position: relative;
+}
+
+.ec-glitch-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.15;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+html,
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+}
+
+.ofb-shell {
+  background:
+    radial-gradient(circle at 16% 0%, rgba(255, 255, 255, 0.95), transparent 34%),
+    linear-gradient(135deg, #f7f8fa 0%, #eef1f5 42%, #faf9f7 100%);
+}
+
+.ofb-noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.34;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.45) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.38) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.58), transparent 80%);
+}
+
+.ofb-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -80px 140px rgba(0, 0, 0, 0.12);
+}
+
+.ofb-preview {
+  transform: perspective(1100px) rotateX(2deg);
+}
+
+@keyframes ofb-ping {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.82);
+  }
+  100% {
+    opacity: 0;
+    box-shadow: 0 0 0 28px rgba(255, 255, 255, 0);
+  }
+}
+
+.ofb-ping {
+  animation: ofb-ping 820ms cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes ofb-tap-pulse {
+  0% {
+    opacity: 0.92;
+    transform: scale(0.72);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+.ofb-tap-pulse {
+  animation: ofb-tap-pulse 900ms cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes ec-ripple {
+  0%   { transform: scale(0.6); opacity: 1;   box-shadow: 0 0 0 0 rgba(255,255,255,0.9); }
+  70%  { transform: scale(1.6); opacity: 0.4; box-shadow: 0 0 0 14px rgba(255,255,255,0); }
+  100% { transform: scale(1.8); opacity: 0;   box-shadow: 0 0 0 18px rgba(255,255,255,0); }
+}
+
+/* Subtle warm-tint pulse on the outgoing image while the next page decodes.
+ * Held under 1.4s so it doesn't outlast a typical generation. */
+@keyframes ec-shimmer {
+  0%   { opacity: 1;   filter: blur(0px) saturate(1.0); }
+  50%  { opacity: 0.78; filter: blur(2px) saturate(1.06); }
+  100% { opacity: 1;   filter: blur(0px) saturate(1.0); }
+}
+
+.ec-morph-old {
+  animation: ec-shimmer 1.4s ease-in-out infinite;
+  will-change: opacity, filter;
+}
+
+.ec-morph-new {
+  will-change: mask-size, -webkit-mask-size;
+}
+
+/* Progressive-render draft. While the user-selected tier is still cooking,
+ * a fast-tier draft paints first; this gentle breathing blur signals "still
+ * sharpening" so the lower-quality preview reads as in-progress, not final.
+ * Disabled under prefers-reduced-motion (see media query below). */
+@keyframes ec-draft-breathe {
+  0%   { filter: blur(0.6px) saturate(0.96); opacity: 0.96; }
+  50%  { filter: blur(1.6px) saturate(1.02); opacity: 0.9; }
+  100% { filter: blur(0.6px) saturate(0.96); opacity: 0.96; }
+}
+
+.ec-draft {
+  animation: ec-draft-breathe 1.6s ease-in-out infinite;
+  will-change: filter, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ec-draft {
+    animation: none !important;
+  }
+  .ec-morph-old,
+  .ec-morph-new {
+    animation: none !important;
+    transition: opacity 180ms linear !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* Atlas: tiles fan in by BFS depth; connectors draw on slightly after.
+ * Both honor prefers-reduced-motion via the !important overrides below. */
+@keyframes ofb-tile-in {
+  0%   { opacity: 0; transform: scale(0.86); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.ofb-tile-in {
+  animation: ofb-tile-in 380ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes ofb-edge-draw {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.ofb-edge-draw {
+  animation: ofb-edge-draw 320ms ease-out both;
+}
+
+/* Continuous downstream flow on connector arcs.
+ * The dasharray is "2 22" (24px period), so shifting the offset by 24px
+ * cycles seamlessly. Layered after `ofb-edge-draw` (same selector) so the
+ * initial fade-in delays the start without breaking the loop. */
+@keyframes ofb-edge-flow {
+  0%   { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -24; }
+}
+
+.ofb-edge-flow {
+  animation: ofb-edge-flow 1.8s linear infinite;
+}
+
+/* When both ofb-edge-draw and ofb-edge-flow apply to the same element,
+ * `animation` is a list — the draw runs once, the flow loops. The shared
+ * `animation-delay` (set inline as "Xms, Xms") staggers both by depth. */
+.ofb-edge-draw.ofb-edge-flow {
+  animation:
+    ofb-edge-draw 320ms ease-out both,
+    ofb-edge-flow 1.8s linear infinite;
+}
+
+/* Warm pulsing halo around the focused atlas tile. */
+@keyframes ofb-tile-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 140, 68, 0.55), 0 6px 24px rgba(0, 0, 0, 0.15); }
+  50%      { box-shadow: 0 0 0 18px rgba(239, 140, 68, 0), 0 12px 36px rgba(0, 0, 0, 0.22); }
+}
+
+.ofb-tile-glow {
+  animation: ofb-tile-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes ofb-mini-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+  50%      { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+}
+
+.ofb-mini-active {
+  animation: ofb-mini-pulse 1.6s ease-in-out infinite;
+}
+
+.ofb-heat-pin .ofb-heat-dot {
+  transition: transform 120ms ease-out;
+}
+.ofb-heat-pin:hover .ofb-heat-dot,
+.ofb-heat-pin:focus-visible .ofb-heat-dot {
+  transform: scale(1.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ofb-tile-in,
+  .ofb-edge-draw,
+  .ofb-edge-flow,
+  .ofb-edge-draw.ofb-edge-flow,
+  .ofb-tile-glow,
+  .ofb-mini-active {
+    animation: none !important;
+  }
+}

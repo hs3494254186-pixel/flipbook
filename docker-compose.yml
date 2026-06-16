@@ -1,0 +1,70 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: openflipbook-mongo
+    restart: unless-stopped
+    command: ["--bind_ip_all", "--quiet"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/modal-backend/Dockerfile
+    container_name: openflipbook-backend
+    restart: unless-stopped
+    env_file:
+      - path: apps/modal-backend/.env
+        required: false
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    ports:
+      - "8787:8787"
+    volumes:
+      - C:\Users\Max  LEC\Desktop\flipbook_images:/app/storage/images
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8787/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: openflipbook-web
+    restart: unless-stopped
+    env_file:
+      - path: apps/web/.env.local
+        required: false
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      MODAL_API_URL: http://backend:8787
+      # Local storage settings
+      LOCAL_STORAGE_PATH: /app/storage/images
+      NEXT_PUBLIC_LOCAL_STORAGE_ENABLED: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - C:\Users\Max  LEC\Desktop\flipbook_images:/app/public/local_images
+    depends_on:
+      backend:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
